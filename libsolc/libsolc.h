@@ -34,10 +34,10 @@
 extern "C" {
 #endif
 
-/// Callback used to retrieve additional source files.
+/// Callback used to retrieve additional source files or data.
 ///
 /// "Returns" two pointers that should be heap-allocated and are free'd by the caller.
-typedef void (*CStyleReadFileCallback)(char const* _path, char** o_contents, char** o_error);
+typedef void (*CStyleReadFileCallback)(char const* _kind, char const* _data, char** o_contents, char** o_error);
 
 /// Returns the complete license document.
 ///

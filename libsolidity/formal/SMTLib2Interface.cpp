@@ -34,8 +34,12 @@ using namespace dev;
 using namespace dev::solidity;
 using namespace dev::solidity::smt;
 
-SMTLib2Interface::SMTLib2Interface(map<h256, string> const& _queryResponses):
-	m_queryResponses(_queryResponses)
+SMTLib2Interface::SMTLib2Interface(
+	map<h256, string> const& _queryResponses,
+	ReadCallback::Callback const& _smtCallback
+):
+	m_queryResponses(_queryResponses),
+	m_smtCallback(_smtCallback)
 {
 	reset();
 }
@@ -46,7 +50,6 @@ void SMTLib2Interface::reset()
 	m_accumulatedOutput.emplace_back();
 	m_variables.clear();
 	write("(set-option :produce-models true)");
-	write("(set-logic ALL)");
 }
 
 void SMTLib2Interface::push()
@@ -227,9 +230,12 @@ string SMTLib2Interface::querySolver(string const& _input)
 	h256 inputHash = dev::keccak256(_input);
 	if (m_queryResponses.count(inputHash))
 		return m_queryResponses.at(inputHash);
-	else
+	if (m_smtCallback)
 	{
-		m_unhandledQueries.push_back(_input);
-		return "unknown\n";
+		auto result = m_smtCallback(ReadCallback::kindString(ReadCallback::Kind::SMTQuery), _input);
+		if (result.success)
+			return result.responseOrErrorMessage;
 	}
+	m_unhandledQueries.push_back(_input);
+	return "unknown\n";
 }
