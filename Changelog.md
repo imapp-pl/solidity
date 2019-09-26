@@ -10,6 +10,7 @@ Compiler Features:
  * SMTChecker: Add break/continue support to the CHC engine.
  * SMTChecker: Support assignments to multi-dimensional arrays and mappings.
  * SMTChecker: Support inheritance and function overriding.
+ * SMTChecker: Add support to constructors including constructor inheritance.
  * Standard JSON Interface: Output the storage layout of a contract when artifact ``storageLayout`` is requested.
  * TypeChecker: List possible candidates when overload resolution fails.
  * TypeChecker: Disallow variables of library types.
