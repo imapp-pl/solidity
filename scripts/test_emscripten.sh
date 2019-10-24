@@ -37,9 +37,8 @@ fi
 REPO_ROOT=$(cd $(dirname "$0")/.. && pwd)
 SOLJSON="$REPO_ROOT/$BUILD_DIR/libsolc/soljson.js"
 VERSION=$("$REPO_ROOT"/scripts/get_version.sh)
-SMTCHECKER_TESTS="$REPO_ROOT/test/libsolidity/smtCheckerTests/"
 
 echo "Running solcjs tests...."
-"$REPO_ROOT/test/externalTests/solc-js/solc-js.sh" "$SOLJSON" "$VERSION" "$SMTCHECKER_TESTS"
+"$REPO_ROOT/test/externalTests/solc-js/solc-js.sh" "$SOLJSON" "$VERSION"
 echo "Running external tests...."
 "$REPO_ROOT/test/externalTests.sh" "$SOLJSON"
