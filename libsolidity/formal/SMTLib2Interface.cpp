@@ -50,6 +50,7 @@ void SMTLib2Interface::reset()
 	m_accumulatedOutput.emplace_back();
 	m_variables.clear();
 	write("(set-option :produce-models true)");
+	write("(set-logic ALL)");
 }
 
 void SMTLib2Interface::push()
