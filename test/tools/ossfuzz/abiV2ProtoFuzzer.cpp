@@ -24,7 +24,8 @@
 
 #include <fstream>
 
-static evmc::vm evmone = evmc::vm{evmc_create_evmone()};
+// FIXME: update evmeone.h to 0.3
+static evmc::VM evmone = evmc::VM{static_cast<struct evmc_vm*>(evmc_create_evmone())};
 
 using namespace dev::test::abiv2fuzzer;
 using namespace dev::test;
