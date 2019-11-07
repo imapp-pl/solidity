@@ -19,6 +19,7 @@
  */
 
 #include <test/libsolidity/SolidityExecutionFramework.h>
+#include <liblangutil/EVMVersion.h>
 #include <libdevcore/SwarmHash.h>
 #include <libevmasm/GasMeter.h>
 
@@ -37,10 +38,10 @@ namespace solidity
 namespace test
 {
 
-#define CHECK_DEPLOY_GAS(_gasNoOpt, _gasOpt) \
+#define CHECK_DEPLOY_GAS(_gasNoOpt, _gasOpt, _evmVersion) \
 	do \
 	{ \
-		u256 bzzr1Cost = GasMeter::dataGas(dev::bzzr1Hash(m_compiler.metadata(m_compiler.lastContractName())).asBytes(), true); \
+		u256 bzzr1Cost = GasMeter::dataGas(dev::bzzr1Hash(m_compiler.metadata(m_compiler.lastContractName())).asBytes(), true, _evmVersion); \
 		u256 gasOpt{_gasOpt}; \
 		u256 gasNoOpt{_gasNoOpt}; \
 		u256 gas = m_optimiserSettings == OptimiserSettings::minimal() ? gasNoOpt : gasOpt; \
@@ -96,17 +97,17 @@ BOOST_AUTO_TEST_CASE(string_storage)
 	compileAndRun(sourceCode);
 
 	if (Options::get().evmVersion() <= EVMVersion::byzantium())
-		CHECK_DEPLOY_GAS(134071, 130763);
+		CHECK_DEPLOY_GAS(134071, 130763, Options::get().evmVersion());
 	// This is only correct on >=Constantinople.
 	else if (Options::get().useABIEncoderV2)
 	{
 		if (Options::get().optimizeYul)
-			CHECK_DEPLOY_GAS(151455, 127653);
+			CHECK_DEPLOY_GAS(151455, 127653, Options::get().evmVersion());
 		else
-			CHECK_DEPLOY_GAS(151455, 135371);
+			CHECK_DEPLOY_GAS(151455, 135371, Options::get().evmVersion());
 	}
 	else
-		CHECK_DEPLOY_GAS(126861, 119591);
+		CHECK_DEPLOY_GAS(126861, 119591, Options::get().evmVersion());
 	if (Options::get().evmVersion() >= EVMVersion::byzantium())
 	{
 		callContractFunction("f()");

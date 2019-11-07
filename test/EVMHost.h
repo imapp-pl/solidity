@@ -180,7 +180,8 @@ private:
 	static evmc::result resultWithGas(evmc_message const& _message, bytes const& _data) noexcept;
 
 	evmc::VM* m_vm = nullptr;
-	evmc_revision m_evmVersion;
+	langutil::EVMVersion m_evmVersion;
+	evmc_revision m_evmRevision;
 };
 
 
