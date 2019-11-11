@@ -117,7 +117,7 @@ defaults:
 
   - test_ubuntu1904: &test_ubuntu1904
       docker:
-        - image: ethereum/solidity-buildpack-deps:ubuntu1904
+        - image: ethereum/solidity-buildpack-deps:ubuntu1904_evmc7
       steps:
         - checkout
         - attach_workspace:
@@ -299,7 +299,7 @@ jobs:
 
   b_ubu: &build_ubuntu1904
     docker:
-      - image: ethereum/solidity-buildpack-deps:ubuntu1904
+      - image: ethereum/solidity-buildpack-deps:ubuntu1904_evmc7
     steps:
       - checkout
       - run: *run_build
