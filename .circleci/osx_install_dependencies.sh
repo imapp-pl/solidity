@@ -52,8 +52,7 @@ then
   rm -rf z3-4.8.6-x64-osx-10.14.6
 
   # evmone
-  wget https://github.com/ethereum/evmone/releases/download/v0.1.0/evmone-0.1.0-darwin-x86_64.tar.gz
-  tar xzpf evmone-0.1.0-darwin-x86_64.tar.gz -C /usr/local
-  rm -f evmone-0.1.0-darwin-x86_64.tar.gz
+  wget https://github.com/ethereum/evmone/releases/download/v0.2.0/evmone-0.2.0-darwin-x86_64.tar.gz
+  tar xzpf evmone-0.2.0-darwin-x86_64.tar.gz -C /usr/local
+  rm -f evmone-0.2.0-darwin-x86_64.tar.gz
 fi
-
