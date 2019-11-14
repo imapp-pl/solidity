@@ -123,10 +123,7 @@ bool SMTEncoder::visit(FunctionDefinition const& _function)
 	m_modifierDepthStack.push_back(-1);
 
 	if (_function.isConstructor())
-	{
-		auto const& contract = dynamic_cast<ContractDefinition const&>(*_function.scope());
-		inlineConstructorHierarchy(contract);
-	}
+		inlineConstructorHierarchy(dynamic_cast<ContractDefinition const&>(*_function.scope()));
 
 	// Base constructors' parameters should be set by explicit calls,
 	// but the most derived one needs to be initialized.
