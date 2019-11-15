@@ -15,6 +15,7 @@
 	along with solidity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "libsolidity/ast/AST.h"
 #include <libsolidity/formal/SMTEncoder.h>
 
 #include <libsolidity/ast/TypeProvider.h>
@@ -208,17 +209,14 @@ void SMTEncoder::endVisit(VariableDeclarationStatement const& _varDecl)
 			solAssert(symbTuple, "");
 			auto const& components = symbTuple->components();
 			auto const& declarations = _varDecl.declarations();
-			if (!components.empty())
-			{
-				solAssert(components.size() == declarations.size(), "");
-				for (unsigned i = 0; i < declarations.size(); ++i)
-					if (
-						components.at(i) &&
-						declarations.at(i) &&
-						m_context.knownVariable(*declarations.at(i))
-					)
-						assignment(*declarations.at(i), components.at(i)->currentValue(declarations.at(i)->type()));
-			}
+			solAssert(components.size() == declarations.size(), "");
+			for (unsigned i = 0; i < declarations.size(); ++i)
+				if (
+					components.at(i) &&
+					declarations.at(i) &&
+					m_context.knownVariable(*declarations.at(i))
+				)
+					assignment(*declarations.at(i), components.at(i)->currentValue(declarations.at(i)->type()));
 		}
 	}
 	else if (m_context.knownVariable(*_varDecl.declarations().front()))
@@ -320,25 +318,22 @@ void SMTEncoder::endVisit(TupleExpression const& _tuple)
 	{
 		auto const& symbTuple = dynamic_pointer_cast<smt::SymbolicTupleVariable>(m_context.expression(_tuple));
 		solAssert(symbTuple, "");
-		if (symbTuple->components().empty())
-		{
-			vector<shared_ptr<smt::SymbolicVariable>> components;
-			for (auto const& component: _tuple.components())
-				if (component)
-				{
-					if (auto varDecl = identifierToVariable(*component))
-						components.push_back(m_context.variable(*varDecl));
-					else
-					{
-						solAssert(m_context.knownExpression(*component), "");
-						components.push_back(m_context.expression(*component));
-					}
-				}
+		vector<shared_ptr<smt::SymbolicVariable>> components;
+		for (auto const& component: _tuple.components())
+			if (component)
+			{
+				if (auto varDecl = identifierToVariable(*component))
+					components.push_back(m_context.variable(*varDecl));
 				else
-					components.push_back(nullptr);
-			solAssert(components.size() == _tuple.components().size(), "");
-			symbTuple->setComponents(move(components));
-		}
+				{
+					solAssert(m_context.knownExpression(*component), "");
+					components.push_back(m_context.expression(*component));
+				}
+			}
+			else
+				components.push_back(nullptr);
+		solAssert(components.size() == _tuple.components().size(), "");
+		symbTuple->setComponents(move(components));
 	}
 	else
 	{
@@ -609,12 +604,15 @@ void SMTEncoder::endVisit(Identifier const& _identifier)
 		defineExpr(_identifier, m_context.thisAddress());
 		m_uninterpretedTerms.insert(&_identifier);
 	}
-	else if (smt::isSupportedType(_identifier.annotation().type->category()))
-		// TODO: handle MagicVariableDeclaration here
-		m_errorReporter.warning(
-			_identifier.location(),
-			"Assertion checker does not yet support the type of this variable."
-		);
+	else if (
+		_identifier.annotation().type->category() != Type::Category::Modifier
+	)
+		createExpr(_identifier);
+}
+
+void SMTEncoder::endVisit(ElementaryTypeNameExpression const& _typeName)
+{
+	createExpr(_typeName);
 }
 
 void SMTEncoder::visitTypeConversion(FunctionCall const& _funCall)
@@ -1503,16 +1501,13 @@ void SMTEncoder::createReturnedExpressions(FunctionCall const& _funCall)
 	{
 		auto const& symbTuple = dynamic_pointer_cast<smt::SymbolicTupleVariable>(m_context.expression(_funCall));
 		solAssert(symbTuple, "");
-		if (symbTuple->components().empty())
+		vector<shared_ptr<smt::SymbolicVariable>> components;
+		for (auto param: returnParams)
 		{
-			vector<shared_ptr<smt::SymbolicVariable>> components;
-			for (auto param: returnParams)
-			{
-				solAssert(m_context.knownVariable(*param), "");
-				components.push_back(m_context.variable(*param));
-			}
-			symbTuple->setComponents(move(components));
+			solAssert(m_context.knownVariable(*param), "");
+			components.push_back(m_context.variable(*param));
 		}
+		symbTuple->setComponents(move(components));
 	}
 	else if (returnParams.size() == 1)
 		defineExpr(_funCall, currentValue(*returnParams.front()));

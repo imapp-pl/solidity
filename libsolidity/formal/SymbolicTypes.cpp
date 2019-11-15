@@ -132,14 +132,18 @@ pair<bool, shared_ptr<SymbolicVariable>> newSymbolicVariable(
 	bool abstract = false;
 	shared_ptr<SymbolicVariable> var;
 	solidity::TypePointer type = &_type;
-	if (!isSupportedTypeDeclaration(_type))
+
+	if (auto const* typeType = dynamic_cast<TypeType const*>(type))
+		type = typeType->actualType();
+
+	if (!isSupportedTypeDeclaration(*type))
 	{
 		abstract = true;
 		var = make_shared<SymbolicIntVariable>(solidity::TypeProvider::uint256(), type, _uniqueName, _context);
 	}
-	else if (isBool(_type.category()))
+	else if (isBool(type->category()))
 		var = make_shared<SymbolicBoolVariable>(type, _uniqueName, _context);
-	else if (isFunction(_type.category()))
+	else if (isFunction(type->category()))
 	{
 		auto const& fType = dynamic_cast<FunctionType const*>(type);
 		auto const& paramsIn = fType->parameterTypes();
@@ -162,19 +166,19 @@ pair<bool, shared_ptr<SymbolicVariable>> newSymbolicVariable(
 		else
 			var = make_shared<SymbolicFunctionVariable>(type, _uniqueName, _context);
 	}
-	else if (isInteger(_type.category()))
+	else if (isInteger(type->category()))
 		var = make_shared<SymbolicIntVariable>(type, type, _uniqueName, _context);
-	else if (isFixedBytes(_type.category()))
+	else if (isFixedBytes(type->category()))
 	{
 		auto fixedBytesType = dynamic_cast<solidity::FixedBytesType const*>(type);
 		solAssert(fixedBytesType, "");
 		var = make_shared<SymbolicFixedBytesVariable>(type, fixedBytesType->numBytes(), _uniqueName, _context);
 	}
-	else if (isAddress(_type.category()) || isContract(_type.category()))
+	else if (isAddress(type->category()) || isContract(type->category()))
 		var = make_shared<SymbolicAddressVariable>(_uniqueName, _context);
-	else if (isEnum(_type.category()))
+	else if (isEnum(type->category()))
 		var = make_shared<SymbolicEnumVariable>(type, _uniqueName, _context);
-	else if (isRational(_type.category()))
+	else if (isRational(type->category()))
 	{
 		auto rational = dynamic_cast<solidity::RationalNumberType const*>(&_type);
 		solAssert(rational, "");
@@ -183,13 +187,13 @@ pair<bool, shared_ptr<SymbolicVariable>> newSymbolicVariable(
 		else
 			var = make_shared<SymbolicIntVariable>(type, type, _uniqueName, _context);
 	}
-	else if (isMapping(_type.category()))
+	else if (isMapping(type->category()))
 		var = make_shared<SymbolicMappingVariable>(type, _uniqueName, _context);
-	else if (isArray(_type.category()))
+	else if (isArray(type->category()))
 		var = make_shared<SymbolicArrayVariable>(type, type, _uniqueName, _context);
-	else if (isTuple(_type.category()))
+	else if (isTuple(type->category()))
 		var = make_shared<SymbolicTupleVariable>(type, _uniqueName, _context);
-	else if (isStringLiteral(_type.category()))
+	else if (isStringLiteral(type->category()))
 	{
 		auto stringType = TypeProvider::stringMemory();
 		var = make_shared<SymbolicArrayVariable>(stringType, type, _uniqueName, _context);

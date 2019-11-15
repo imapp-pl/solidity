@@ -23,6 +23,7 @@
 #pragma once
 
 
+#include "libsolidity/ast/AST.h"
 #include <libsolidity/formal/EncodingContext.h>
 #include <libsolidity/formal/SymbolicVariables.h>
 #include <libsolidity/formal/VariableUsage.h>
@@ -82,6 +83,7 @@ protected:
 	void endVisit(BinaryOperation const& _node) override;
 	void endVisit(FunctionCall const& _node) override;
 	void endVisit(Identifier const& _node) override;
+	void endVisit(ElementaryTypeNameExpression const& _node) override;
 	void endVisit(Literal const& _node) override;
 	void endVisit(Return const& _node) override;
 	bool visit(MemberAccess const& _node) override;
