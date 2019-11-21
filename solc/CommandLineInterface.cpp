@@ -35,6 +35,8 @@
 #include <libsolidity/interface/GasEstimator.h>
 
 #include <libyul/AssemblyStack.h>
+#include <libyul/backends/wasm/EVMToEWasmTranslator.h>
+#include <libyul/backends/evm/EVMDialect.h>
 
 #include <libevmasm/Instruction.h>
 #include <libevmasm/GasMeter.h>
@@ -909,8 +911,9 @@ bool CommandLineInterface::processInput()
 				return false;
 			}
 		}
-		if (targetMachine == Machine::eWasm && inputLanguage == Input::StrictAssembly)
-			inputLanguage = Input::EWasm;
+// TODO: Removed to enable ewast translator testing.
+//		if (targetMachine == Machine::eWasm && inputLanguage == Input::StrictAssembly)
+//			inputLanguage = Input::EWasm;
 		if (optimize && inputLanguage != Input::StrictAssembly)
 		{
 			serr() <<
@@ -1307,6 +1310,26 @@ bool CommandLineInterface::assemble(
 				successful = false;
 			else
 				stack.optimize();
+
+			// FIXME: Ugly fragment of code to enable generating ewasm from strict assembly
+			if(successful && (_language == yul::AssemblyStack::Language::StrictAssembly
+				&& _targetMachine == yul::AssemblyStack::Machine::eWasm))
+			{
+				yul::Object ewasmObject = yul::EVMToEWasmTranslator(
+					yul::EVMDialect::strictAssemblyForEVMObjects(m_evmVersion)
+				).run(*stack.parserResult());
+
+				// Re-inject into an assembly stack for the eWasm dialect
+				OptimiserSettings optimizerSettings = _optimize ? OptimiserSettings::full() : OptimiserSettings::minimal();
+				yul::AssemblyStack ewasmStack(m_evmVersion, yul::AssemblyStack::Language::EWasm, optimizerSettings);
+				// TODO this is a hack for now - provide as structured AST!
+				ewasmStack.parseAndAnalyze("", "{}");
+				*ewasmStack.parserResult() = move(ewasmObject);
+				ewasmStack.optimize();
+
+				assemblyStacks[src.first] = ewasmStack;
+			}
+			// FIXME: End of ugly fragment
 		}
 		catch (Exception const& _exception)
 		{
